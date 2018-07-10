@@ -28,4 +28,52 @@ Raw RNA sequencing reads were processed into read counts using the following sta
 * [TopHat](https://ccb.jhu.edu/software/tophat/index.shtml) to map trimmed reads to the Rio reference assembly
 * [HTSeq] (https://htseq.readthedocs.io/en/release_0.10.0/) to obtain read counts from the BAM files output by TopHat
 
-The counts output from HTSeq were then read directly into R using the DESeq2 package, and differentially expression was assessed using the code in `DESeq_noBL.R.`  The results from DESeq2 were further processed and reads were clustered using the code in `EBSeqHMM_Cluster.R`.  Both scripts rely on functions in `RNAseq_fxns.R`.  
+The counts output from HTSeq were then read directly into R using the DESeq2 package, and differentially expression was assessed using the code in `DESeq_noBL.R.`  The results from DESeq2 were further processed and reads were clustered using the code in `EBSeqHMM_Cluster.R`.  Both scripts rely on functions in `RNAseq_fxns.R`.
+
+## RIL Breakpoint Analysis
+Step 1: Raw Illumina HiSeq reads from BTx3197, PR22, and Rio were each trimmed with [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic).  Below is an example command line from Rio:
+```
+java -jar /zfs/gcl/software/trimmomatic/0.36/trimmomatic-0.36.jar PE -threads 15 -trimlog $out/Rio_trim.log Rio_Fastq/1149.6.1254_1.fastq Rio_Fastq/1149.6.1254_2.fastq $out/Rio_paired_1.fq $out/Rio_unpaired_1.fq $out/Rio_paired_2.fq $out/Rio_unpaired_2.fq ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
+```
+Step 2: Trimmed read pairs from each library were aligned to the Rio genome with [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml).  Below is an example command line from the Rio library:
+```
+bowtie2-build Sorghum_rio.mainGenome.fasta Rio
+
+bowtie2 -p 16 -x $raw/Rio --rg-id Rio --rg "SM:Rio" -1 Trimmed_Reads/Rio_paired_1.fq -2 Trimmed_Reads/Rio_paired_2.fq -S Aligned/Rio.sam
+```
+Step 3: Sam files were converted to BAM, sorted and indexed using [Samtools v1.4](https://sourceforge.net/projects/samtools/files/samtools/1.4/):
+```
+samtools view -O BAM -@ 8  Rio.sam | samtools sort -o Rio.sort.bam -O BAM -@ 8 -
+samtools index -b Rio.sort.bam
+```
+Step 4: Run the [GatK](https://software.broadinstitute.org/gatk/) HapCaller on each individual sample BAM file.
+```
+java -jar /panicle/GenomeAnalysisTK.jar -T HaplotypeCaller \
+        -I $src/Rio.sort.bam \
+        -R $ref/Sorghum_rio.mainGenome.fasta \
+        -o $src/Rio.gvcf \
+        -ERC GVCF \
+        -allowPotentiallyMisencodedQuals \ (This option only necessary with Rio, which had older qual scores)
+        -variant_index_type LINEAR \
+        -variant_index_parameter 128000
+```
+Step 5: Run the GatK GenotypeGVCFs tool to get joint genotypes across all 3 samples:
+```
+java -jar /panicle/GenomeAnalysisTK.jar -T GenotypeGVCFs \
+        -R $ref/Sorghum_rio.mainGenome.fasta \
+        -o $src/all.vcf \
+        --variant BTx3197.gvcf —variant PR22.gvcf —variant Rio.gvcf \
+```
+_Steps 6, 7 and 8 below can be performed with the R code `RIL.R`_
+
+Step 6: Starting with 1,812,578 SNPs called by GATK, filter the VCF file to remove sites where:
+* Any of the 3 individuals has missing data (1,669,843 sites remaining),
+* Rio appears polymorphic, i.e. heterozygous (1,614,305 sites remaining),
+* BTx3197 appears heterozygous (1,492,327 sites remaining)
+* Rio and BTx3197 are the same (1,474,261 sites remaining)
+
+Step 7: In the filtered VCF file, classify each site within PR22 as Parent 0 (Rio) or Parent 2 (BTx3197). (All 0/0 sites are 0, all 1/1 sites are 2, and all 0/1 sites are 1)
+
+Step 8: In windows of 15 SNPs, count the numbers of 0s and 2s (skip the 1s); calculate the proportion of 0:2; if the proportion is >2, classify the site as "R" for Rio; if <0.25, classify the site as "B" for BTx3197; if between 0.25 and 2, classify the site as "H" for Heterozygous.  
+
+Breakpoints occur at any transition from R to B (or vice versa), allowing for the possibility that the state may change to H first (i.e. R -> H -> B).  Changes to "H" that revert back to the original parental type (i.e. R -> H -> R) are NOT breakpoints. 
