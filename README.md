@@ -13,4 +13,9 @@ ref2=Sbicolor_454_v3.1.1.transcript_primaryTranscriptOnly.fa
 
 blat -t=dna -q=dna $ref1 $ref2  Rio_Btx_v3.1.1_Blat.psl
 ```
-Step 3: Use the R code in `mummerParse.R` (which in turn relies on the functions in `pan_transcriptome_fxns.R` to perform local alignments of genes within the Mummer blocks identified in the nucmer output from Step 1.  Alignments are created using a Needleman-Wunsch algorithm, with scores calculated from the Blat .psl file created in Step 2.  
+Step 3: Use the R code in `mummerParse.R` (which in turn relies on the functions in `pan_transcriptome_fxns.R` to perform local alignments of genes within the Mummer blocks identified in the nucmer output from Step 1.  Alignments are created using a Needleman-Wunsch algorithm, with scores calculated from the Blat .psl file created in Step 2.
+
+Step 4: Run [Assemblytics](assemblytics.com) web analysis tool to process the delta file from nucmer. Then run `parseAssemblytics.R` to combine info with the Mummer blocks, and to determine if there are actually colinear gene alignments with regions called as SVs by Assemblytics.
+
+_Note that some further error checking may be needed (i.e. done by hand) for particularly difficult/repetitive regions._
+  
