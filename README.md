@@ -18,4 +18,6 @@ Step 3: Use the R code in `mummerParse.R` (which in turn relies on the functions
 Step 4: Run [Assemblytics](assemblytics.com) web analysis tool to process the delta file from nucmer. Then run `parseAssemblytics.R` to combine info with the Mummer blocks, and to determine if there are actually colinear gene alignments with regions called as SVs by Assemblytics.
 
 _Note that some further error checking may be needed (i.e. done by hand) for particularly difficult/repetitive regions._
-  
+
+## Creating the Circos Plot
+The colinear coordinates `.csv` file was created by extracting the relevant columns from the nucmer `.coords` output.  Plot was created with the R code in circos_plot.R.  
