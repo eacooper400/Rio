@@ -20,4 +20,12 @@ Step 4: Run [Assemblytics](assemblytics.com) web analysis tool to process the de
 _Note that some further error checking may be needed (i.e. done by hand) for particularly difficult/repetitive regions._
 
 ## Creating the Circos Plot
-The colinear coordinates `.csv` file was created by extracting the relevant columns from the nucmer `.coords` output.  This ![Plot](./Circos_Fig2.png) was created with the R code in circos_plot.R.  
+The colinear coordinates `.csv` file was created by extracting the relevant columns from the nucmer `.coords` output.  This ![Plot](./Circos_Fig2.png) was created with the R code in circos_plot.R.
+
+## Comparing Expression Profiles
+Raw RNA sequencing reads were processed into read counts using the following standard tools:
+* [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) to filter and trim reads
+* [TopHat](https://ccb.jhu.edu/software/tophat/index.shtml) to map trimmed reads to the Rio reference assembly
+* [HTSeq] (https://htseq.readthedocs.io/en/release_0.10.0/) to obtain read counts from the BAM files output by TopHat
+
+The counts output from HTSeq were then read directly into R using the DESeq2 package, and differentially expression was assessed using the code in `DESeq_noBL.R.`  The results from DESeq2 were further processed and reads were clustered using the code in `EBSeqHMM_Cluster.R`.  Both scripts rely on functions in `RNAseq_fxns.R`.  
