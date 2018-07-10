@@ -77,3 +77,8 @@ Step 7: In the filtered VCF file, classify each site within PR22 as Parent 0 (Ri
 Step 8: In windows of 15 SNPs, count the numbers of 0s and 2s (skip the 1s); calculate the proportion of 0:2; if the proportion is >2, classify the site as "R" for Rio; if <0.25, classify the site as "B" for BTx3197; if between 0.25 and 2, classify the site as "H" for Heterozygous.  
 
 Breakpoints occur at any transition from R to B (or vice versa), allowing for the possibility that the state may change to H first (i.e. R -> H -> B).  Changes to "H" that revert back to the original parental type (i.e. R -> H -> R) are NOT breakpoints. 
+
+## Additional Scripts
+`exp_wGo.R` uses the differential expression results from DESeq2, along with the breakpoint analysis results and the gene-to-gene alignments from Mummer and Blat to find enriched GO terms among significant DEGs specifically within the context of their genetic background.
+
+`snpsWimpact.R` uses results from [snpEff](http://snpeff.sourceforge.net/) and the differenital expression results from DESeq2 to find differentially expressed genes with a predicted high impact mutation.
