@@ -20,4 +20,4 @@ Step 4: Run [Assemblytics](assemblytics.com) web analysis tool to process the de
 _Note that some further error checking may be needed (i.e. done by hand) for particularly difficult/repetitive regions._
 
 ## Creating the Circos Plot
-The colinear coordinates `.csv` file was created by extracting the relevant columns from the nucmer `.coords` output.  This ![Plot](https://github.com/eacooper400/Rio/Circos_Fig2.pdf) was created with the R code in circos_plot.R.  
+The colinear coordinates `.csv` file was created by extracting the relevant columns from the nucmer `.coords` output.  This ![Plot](https://github.com/eacooper400/Rio/Circos_Fig2.png) was created with the R code in circos_plot.R.  
